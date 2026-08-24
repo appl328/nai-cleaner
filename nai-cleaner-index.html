@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5efe3">
+<title>NAI Cleaner</title>
+
+<style>
+:root{
+  --bg:#f5efe3;
+  --paper:#fffaf1;
+  --paper-2:#fbf4e8;
+  --text:#25231f;
+  --muted:#7b756b;
+  --line:#ded3c2;
+  --red:#b83b35;
+  --red-dark:#8f2b27;
+  --green:#4f6f4a;
+  --green-dark:#385336;
+  --shadow:0 12px 30px rgba(74,57,35,.08);
+  --radius:22px;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,"Helvetica Neue",Helvetica,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+}
+
+button,input,select{
+  font:inherit;
+}
+
+button{
+  -webkit-tap-highlight-color:transparent;
+}
+
+body{
+  min-height:100vh;
+}
+
+.app{
+  width:min(980px,100%);
+  margin:0 auto;
+  padding:24px 18px 48px;
+}
+
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.apple{
+  width:48px;
+  height:48px;
+  position:relative;
+  flex:0 0 auto;
+}
+
+.apple::before{
+  content:"";
+  position:absolute;
+  width:34px;
+  height:36px;
+  left:6px;
+  top:10px;
+  background:var(--red);
+  border-radius:48% 52% 52% 48% / 42% 42% 58% 58%;
+  transform:rotate(-3deg);
+}
+
+.apple::after{
+  content:"";
+  position:absolute;
+  width:15px;
+  height:9px;
+  right:1px;
+  top:3px;
+  background:var(--green);
+  border-radius:100% 0 100% 0;
+  transform:rotate(-22deg);
+}
+
+.brand h1{
+  margin:0;
+  font-size:25px;
+  line-height:1.05;
+  letter-spacing:-.6px;
+}
+
+.brand p{
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.4;
+}
+
+.local-badge{
+  flex:0 0 auto;
+  border:1px solid #b9c8b4;
+  color:var(--green-dark);
+  background:#edf3e9;
+  padding:8px 11px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.panel{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+
+.dropzone{
+  position:relative;
+  min-height:230px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:30px;
+  border:2px dashed #cdbda8;
+  border-radius:var(--radius);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(184,59,53,.06), transparent 30%),
+    radial-gradient(circle at 85% 100%, rgba(79,111,74,.08), transparent 32%),
+    var(--paper);
+  cursor:pointer;
+  transition:.18s ease;
+}
+
+.dropzone.dragover{
+  border-color:var(--green);
+  background:#f3f5e9;
+  transform:translateY(-1px);
+}
+
+.dropzone input{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:0;
+  cursor:pointer;
+}
+
+.drop-icon{
+  width:58px;
+  height:58px;
+  margin:0 auto 14px;
+  border-radius:18px;
+  background:#f2e2d4;
+  display:grid;
+  place-items:center;
+  color:var(--red);
+  font-size:26px;
+  font-weight:900;
+}
+
+.dropzone strong{
+  display:block;
+  font-size:19px;
+  margin-bottom:8px;
+}
+
+.dropzone span{
+  display:block;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.55;
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:1.2fr 1fr 1fr auto;
+  gap:10px;
+  padding:14px;
+  margin-top:14px;
+}
+
+.field{
+  min-width:0;
+}
+
+.field label{
+  display:block;
+  margin:0 0 6px 2px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:700;
+}
+
+.field input,
+.field select{
+  width:100%;
+  height:42px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fffdf8;
+  color:var(--text);
+  outline:none;
+}
+
+.field input:focus,
+.field select:focus{
+  border-color:var(--green);
+  box-shadow:0 0 0 3px rgba(79,111,74,.10);
+}
+
+.quality-wrap{
+  display:none;
+}
+
+.quality-wrap.show{
+  display:block;
+}
+
+.top-actions{
+  display:flex;
+  gap:8px;
+  align-items:end;
+}
+
+.btn{
+  height:42px;
+  border:0;
+  border-radius:12px;
+  padding:0 14px;
+  cursor:pointer;
+  font-weight:800;
+  white-space:nowrap;
+  transition:.15s ease;
+}
+
+.btn:active{
+  transform:translateY(1px);
+}
+
+.btn-red{
+  background:var(--red);
+  color:white;
+}
+
+.btn-red:hover{
+  background:var(--red-dark);
+}
+
+.btn-green{
+  background:var(--green);
+  color:white;
+}
+
+.btn-green:hover{
+  background:var(--green-dark);
+}
+
+.btn-soft{
+  color:var(--text);
+  background:#eee5d7;
+}
+
+.btn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.statusbar{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  margin:18px 2px 10px;
+}
+
+.statusbar strong{
+  font-size:14px;
+}
+
+.statusbar span{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.file-list{
+  display:grid;
+  gap:10px;
+}
+
+.file-card{
+  display:grid;
+  grid-template-columns:68px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:11px;
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:16px;
+}
+
+.thumb{
+  width:68px;
+  height:68px;
+  border-radius:12px;
+  object-fit:cover;
+  background:#eee6da;
+  border:1px solid #e3d7c7;
+}
+
+.file-info{
+  min-width:0;
+}
+
+.file-name{
+  font-size:13px;
+  font-weight:800;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.file-sub{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.45;
+}
+
+.file-sub .ok{
+  color:var(--green-dark);
+  font-weight:800;
+}
+
+.file-sub .err{
+  color:var(--red-dark);
+  font-weight:800;
+}
+
+.file-actions{
+  display:flex;
+  gap:7px;
+  align-items:center;
+}
+
+.small-btn{
+  height:36px;
+  border:0;
+  border-radius:10px;
+  padding:0 11px;
+  cursor:pointer;
+  font-weight:800;
+  font-size:12px;
+}
+
+.download-btn{
+  background:#e7efe3;
+  color:var(--green-dark);
+}
+
+.remove-btn{
+  width:36px;
+  padding:0;
+  background:#f1e3df;
+  color:var(--red-dark);
+}
+
+.empty{
+  display:none;
+  text-align:center;
+  padding:24px 10px 4px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.footer-note{
+  margin-top:18px;
+  padding:15px 16px;
+  border:1px solid #d7dece;
+  background:#f4f5ed;
+  border-radius:14px;
+  color:#5f6357;
+  font-size:12px;
+  line-height:1.6;
+}
+
+.footer-note b{
+  color:var(--green-dark);
+}
+
+@media (max-width:760px){
+  .app{
+    padding:18px 12px 34px;
+  }
+
+  header{
+    align-items:flex-start;
+  }
+
+  .local-badge{
+    display:none;
+  }
+
+  .dropzone{
+    min-height:200px;
+    padding:24px 18px;
+  }
+
+  .controls{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .top-actions{
+    grid-column:1 / -1;
+  }
+
+  .top-actions .btn{
+    flex:1;
+  }
+
+  .file-card{
+    grid-template-columns:58px minmax(0,1fr);
+  }
+
+  .thumb{
+    width:58px;
+    height:58px;
+  }
+
+  .file-actions{
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:1fr 42px;
+  }
+
+  .small-btn{
+    width:100%;
+  }
+
+  .remove-btn{
+    width:42px;
+  }
+}
+
+@media (max-width:430px){
+  .brand h1{
+    font-size:22px;
+  }
+
+  .controls{
+    grid-template-columns:1fr;
+  }
+
+  .top-actions{
+    grid-column:auto;
+  }
+
+  .statusbar{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:4px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="apple" aria-hidden="true"></div>
+      <div>
+        <h1>NAI Cleaner</h1>
+        <p>이미지 메타데이터를 기기 안에서 정리합니다</p>
+      </div>
+    </div>
+    <div class="local-badge">LOCAL ONLY</div>
+  </header>
+
+  <main>
+    <label class="dropzone" id="dropzone">
+      <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+      <div>
+        <div class="drop-icon">＋</div>
+        <strong>이미지를 여기에 놓거나 선택</strong>
+        <span>
+          PNG · JPG · WEBP / 여러 장 한 번에 가능<br>
+          파일은 서버로 전송되지 않습니다
+        </span>
+      </div>
+    </label>
+
+    <section class="panel controls">
+      <div class="field">
+        <label for="prefix">저장 파일명</label>
+        <input id="prefix" type="text" value="image" maxlength="40" placeholder="image">
+      </div>
+
+      <div class="field">
+        <label for="format">출력 형식</label>
+        <select id="format">
+          <option value="png">PNG</option>
+          <option value="jpeg">JPEG</option>
+          <option value="webp">WEBP</option>
+        </select>
+      </div>
+
+      <div class="field quality-wrap" id="qualityWrap">
+        <label for="quality">출력 품질</label>
+        <select id="quality">
+          <option value="0.95" selected>95%</option>
+          <option value="0.92">92%</option>
+          <option value="0.90">90%</option>
+          <option value="0.85">85%</option>
+        </select>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn btn-soft" id="clearBtn" disabled>전체 삭제</button>
+        <button class="btn btn-green" id="zipBtn" disabled>ZIP 다운로드</button>
+      </div>
+    </section>
+
+    <div class="statusbar">
+      <strong id="countText">파일 없음</strong>
+      <span id="statusText">업로드하면 자동으로 정리됩니다</span>
+    </div>
+
+    <section class="file-list" id="fileList"></section>
+    <div class="empty" id="empty">아직 추가된 이미지가 없습니다</div>
+
+    <div class="footer-note">
+      <b>처리 방식</b><br>
+      이미지를 브라우저에서 새로 읽고 다시 저장하여 메타데이터를 제거합니다
+      PNG 출력은 숨겨진 메타데이터 흔적이 남지 않도록 픽셀 데이터를 정리하고,
+      JPEG와 WEBP 출력은 새 파일로 다시 인코딩합니다
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<script>
+(() => {
+  "use strict";
+
+  const fileInput   = document.getElementById("fileInput");
+  const dropzone    = document.getElementById("dropzone");
+  const fileList    = document.getElementById("fileList");
+  const empty       = document.getElementById("empty");
+  const prefixInput = document.getElementById("prefix");
+  const formatSel   = document.getElementById("format");
+  const qualitySel  = document.getElementById("quality");
+  const qualityWrap = document.getElementById("qualityWrap");
+  const clearBtn    = document.getElementById("clearBtn");
+  const zipBtn      = document.getElementById("zipBtn");
+  const countText   = document.getElementById("countText");
+  const statusText  = document.getElementById("statusText");
+
+  let items = [];
+  let nextId = 1;
+  let processingGeneration = 0;
+
+  const supportsCreateImageBitmap = "createImageBitmap" in window;
+
+  function sanitizePrefix(value) {
+    return (value || "image")
+      .trim()
+      .replace(/[\\/:*?"<>|]/g, "_")
+      .replace(/\s+/g, "_")
+      .replace(/^\.+|\.+$/g, "")
+      .slice(0, 40) || "image";
+  }
+
+  function padNumber(num, total) {
+    const digits = Math.max(3, String(Math.max(total, 1)).length);
+    return String(num).padStart(digits, "0");
+  }
+
+  function extForFormat() {
+    if (formatSel.value === "jpeg") return "jpg";
+    if (formatSel.value === "webp") return "webp";
+    return "png";
+  }
+
+  function outputMime() {
+    if (formatSel.value === "jpeg") return "image/jpeg";
+    if (formatSel.value === "webp") return "image/webp";
+    return "image/png";
+  }
+
+  function outputName(index) {
+    return `${sanitizePrefix(prefixInput.value)}_${padNumber(index + 1, items.length)}.${extForFormat()}`;
+  }
+
+  function prettyBytes(bytes) {
+    if (!Number.isFinite(bytes)) return "";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+  }
+
+  function revokeItemUrls(item) {
+    if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+    if (item.outputUrl) URL.revokeObjectURL(item.outputUrl);
+  }
+
+  async function loadImage(file) {
+    if (supportsCreateImageBitmap) {
+      try {
+        return await createImageBitmap(file);
+      } catch (_) {}
+    }
+
+    const url = URL.createObjectURL(file);
+    try {
+      const img = new Image();
+      img.decoding = "async";
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error("이미지를 읽을 수 없습니다"));
+        img.src = url;
+      });
+      return img;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  function canvasToBlob(canvas, type, quality) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => {
+        if (!blob) {
+          reject(new Error("파일 생성에 실패했습니다"));
+          return;
+        }
+        resolve(blob);
+      }, type, quality);
+    });
+  }
+
+  function scrubStealthBits(imageData) {
+    const d = imageData.data;
+
+    for (let i = 0; i < d.length; i += 4) {
+      // RGB 하위 2비트를 제거해 LSB 기반 stealth 데이터를 깨뜨림
+      d[i]     = d[i]     & 0xFC;
+      d[i + 1] = d[i + 1] & 0xFC;
+      d[i + 2] = d[i + 2] & 0xFC;
+
+      // NAI의 alpha-channel LSB 흔적 제거
+      // 거의 불투명한 픽셀(252~255)은 255로 통일
+      if (d[i + 3] >= 252) {
+        d[i + 3] = 255;
+      } else {
+        d[i + 3] = d[i + 3] & 0xFC;
+      }
+    }
+
+    return imageData;
+  }
+
+  async function processFile(file) {
+    const image = await loadImage(file);
+    const width = image.width || image.naturalWidth;
+    const height = image.height || image.naturalHeight;
+
+    if (!width || !height) {
+      throw new Error("이미지 크기를 확인할 수 없습니다");
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d", {
+      alpha: true,
+      willReadFrequently: true
+    });
+
+    if (!ctx) throw new Error("Canvas를 사용할 수 없습니다");
+
+    if (formatSel.value === "jpeg") {
+      // JPEG는 투명도를 지원하지 않으므로 흰색으로 합성
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    ctx.drawImage(image, 0, 0, width, height);
+
+    // PNG/JPEG 모두 픽셀단 stealth 흔적을 먼저 제거
+    const data = ctx.getImageData(0, 0, width, height);
+    scrubStealthBits(data);
+    ctx.putImageData(data, 0, 0);
+
+    if (image && typeof image.close === "function") {
+      image.close();
+    }
+
+    const type = outputMime();
+    const quality = Number(qualitySel.value) || 0.95;
+    const blob = await canvasToBlob(canvas, type, (type === "image/jpeg" || type === "image/webp") ? quality : undefined);
+
+    return { blob, width, height };
+  }
+
+  async function addFiles(fileArray) {
+    const files = [...fileArray].filter(file =>
+      /^image\/(png|jpeg|webp)$/i.test(file.type) ||
+      /\.(png|jpe?g|webp)$/i.test(file.name)
+    );
+
+    if (!files.length) return;
+
+    for (const file of files) {
+      items.push({
+        id: nextId++,
+        file,
+        previewUrl: URL.createObjectURL(file),
+        outputBlob: null,
+        outputUrl: null,
+        status: "대기",
+        error: null,
+        width: null,
+        height: null
+      });
+    }
+
+    render();
+    await processAll();
+  }
+
+  async function processAll() {
+    const generation = ++processingGeneration;
+    statusText.textContent = "이미지 정리 중...";
+
+    for (let i = 0; i < items.length; i++) {
+      if (generation !== processingGeneration) return;
+
+      const item = items[i];
+      item.status = "처리 중";
+      item.error = null;
+
+      if (item.outputUrl) {
+        URL.revokeObjectURL(item.outputUrl);
+        item.outputUrl = null;
+      }
+      item.outputBlob = null;
+
+      render();
+
+      try {
+        const result = await processFile(item.file);
+
+        if (generation !== processingGeneration) return;
+
+        item.outputBlob = result.blob;
+        item.outputUrl = URL.createObjectURL(result.blob);
+        item.width = result.width;
+        item.height = result.height;
+        item.status = "완료";
+      } catch (err) {
+        console.error(err);
+        item.status = "실패";
+        item.error = err?.message || "처리 실패";
+      }
+
+      render();
+    }
+
+    if (generation === processingGeneration) {
+      const ok = items.filter(x => x.outputBlob).length;
+      statusText.textContent = ok
+        ? `${ok}개 파일 정리 완료`
+        : "처리된 파일이 없습니다";
+    }
+  }
+
+  function render() {
+    fileList.innerHTML = "";
+
+    empty.style.display = items.length ? "none" : "block";
+    clearBtn.disabled = !items.length;
+    zipBtn.disabled = !items.some(x => x.outputBlob);
+
+    countText.textContent = items.length
+      ? `${items.length}개 파일`
+      : "파일 없음";
+
+    items.forEach((item, index) => {
+      const card = document.createElement("article");
+      card.className = "file-card";
+
+      const thumb = document.createElement("img");
+      thumb.className = "thumb";
+      thumb.src = item.previewUrl;
+      thumb.alt = "";
+
+      const info = document.createElement("div");
+      info.className = "file-info";
+
+      const name = document.createElement("div");
+      name.className = "file-name";
+      name.textContent = outputName(index);
+
+      const sub = document.createElement("div");
+      sub.className = "file-sub";
+
+      const stateClass = item.status === "완료" ? "ok" : item.status === "실패" ? "err" : "";
+      const details = item.outputBlob
+        ? `${item.width}×${item.height} · ${prettyBytes(item.outputBlob.size)}`
+        : item.error || prettyBytes(item.file.size);
+
+      sub.innerHTML = `<span class="${stateClass}">${item.status}</span>${details ? ` · ${escapeHtml(details)}` : ""}`;
+
+      info.append(name, sub);
+
+      const actions = document.createElement("div");
+      actions.className = "file-actions";
+
+      const download = document.createElement("button");
+      download.className = "small-btn download-btn";
+      download.textContent = "다운로드";
+      download.disabled = !item.outputBlob;
+      download.addEventListener("click", () => {
+        if (!item.outputBlob) return;
+        downloadBlob(item.outputBlob, outputName(index));
+      });
+
+      const remove = document.createElement("button");
+      remove.className = "small-btn remove-btn";
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", "삭제");
+      remove.addEventListener("click", () => {
+        processingGeneration++;
+        revokeItemUrls(item);
+        items = items.filter(x => x.id !== item.id);
+        render();
+        if (items.length) processAll();
+        else statusText.textContent = "업로드하면 자동으로 정리됩니다";
+      });
+
+      actions.append(download, remove);
+      card.append(thumb, info, actions);
+      fileList.append(card);
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+
+  async function downloadZip() {
+    const completed = items.filter(x => x.outputBlob);
+    if (!completed.length) return;
+
+    if (typeof JSZip === "undefined") {
+      alert("ZIP 라이브러리를 불러오지 못했습니다");
+      return;
+    }
+
+    zipBtn.disabled = true;
+    zipBtn.textContent = "ZIP 생성 중...";
+    statusText.textContent = "ZIP 파일 만드는 중...";
+
+    try {
+      const zip = new JSZip();
+
+      items.forEach((item, index) => {
+        if (item.outputBlob) {
+          zip.file(outputName(index), item.outputBlob);
+        }
+      });
+
+      const blob = await zip.generateAsync({
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: { level: 6 }
+      });
+
+      const zipName = `${sanitizePrefix(prefixInput.value)}_cleaned.zip`;
+      downloadBlob(blob, zipName);
+      statusText.textContent = `${completed.length}개 파일 ZIP 생성 완료`;
+    } catch (err) {
+      console.error(err);
+      statusText.textContent = "ZIP 생성 실패";
+      alert("ZIP 파일 생성 중 오류가 발생했습니다");
+    } finally {
+      zipBtn.textContent = "ZIP 다운로드";
+      zipBtn.disabled = !items.some(x => x.outputBlob);
+    }
+  }
+
+  function resetAll() {
+    processingGeneration++;
+    items.forEach(revokeItemUrls);
+    items = [];
+    fileInput.value = "";
+    render();
+    statusText.textContent = "업로드하면 자동으로 정리됩니다";
+  }
+
+  fileInput.addEventListener("change", async e => {
+    await addFiles(e.target.files);
+    fileInput.value = "";
+  });
+
+  ["dragenter", "dragover"].forEach(type => {
+    dropzone.addEventListener(type, e => {
+      e.preventDefault();
+      dropzone.classList.add("dragover");
+    });
+  });
+
+  ["dragleave", "drop"].forEach(type => {
+    dropzone.addEventListener(type, e => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+    });
+  });
+
+  dropzone.addEventListener("drop", async e => {
+    await addFiles(e.dataTransfer.files);
+  });
+
+  formatSel.addEventListener("change", async () => {
+    qualityWrap.classList.toggle("show", formatSel.value === "jpeg" || formatSel.value === "webp");
+    if (items.length) await processAll();
+    else render();
+  });
+
+  qualitySel.addEventListener("change", async () => {
+    if (items.length && (formatSel.value === "jpeg" || formatSel.value === "webp")) await processAll();
+  });
+
+  prefixInput.addEventListener("input", render);
+
+  clearBtn.addEventListener("click", resetAll);
+  zipBtn.addEventListener("click", downloadZip);
+
+  qualityWrap.classList.toggle("show", formatSel.value === "jpeg" || formatSel.value === "webp");
+  render();
+})();
+</script>
+</body>
+</html>
